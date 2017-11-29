@@ -8,7 +8,7 @@
 
 #define PHT_SIZE 1024*16 
 
-#define TS_KEY_SIZE (140 + 32)
+#define TS_KEY_SIZE (16 + 64)
 
 #define TS_ON
 

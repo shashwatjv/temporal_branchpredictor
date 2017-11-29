@@ -1,7 +1,7 @@
 #include "ooo_cpu.h"
 
-#define PBHT_SIZE 128
-#define GPHT_SIZE 256
+#define PBHT_SIZE 1024*2
+#define GPHT_SIZE 16
 #define MAX_COUNTER 3
 
 #include "predictor.h"

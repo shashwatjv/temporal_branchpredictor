@@ -1,7 +1,7 @@
 #include "ooo_cpu.h"
 
-#define BIMODAL_TABLE_SIZE 16384
-#define BIMODAL_PRIME 16381
+#define BIMODAL_TABLE_SIZE 1024*2
+#define BIMODAL_PRIME 1024*2
 #define MAX_COUNTER 3
 #include "predictor.h"
 
@@ -36,9 +36,9 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
 
     return basepred;
 }
-bitset<TS_KEY_SIZE> O3_CPU::ts_idx(UINT32 PC) { // Main Gshare 
+bitset<TS_KEY_SIZE> O3_CPU::ts_idx(uint64_t PC) { // Main Gshare 
     bitset<TS_KEY_SIZE> pc = bitset<TS_KEY_SIZE>(PC);
-    return pc | (ts_gh << 32);
+    return pc;
 
 }
 
@@ -52,10 +52,6 @@ void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken, uint8_t predDir)
         bimodal_table[cpu][hash]--;
 
 #ifdef TS_ON
-  ts_gh <<= 1;
-  if(taken == 1){
-    ts_gh[0] = 1;
-  }
 
   // update ts
   ts.push_back(basepred == taken); // checks (Real = or != Base) 

@@ -1,6 +1,6 @@
 #include "ooo_cpu.h"
 
-#define GPT_SIZE 1024*16
+#define GPT_SIZE 1024*2
 #define MAX_COUNTER 3
 
 int GPT[NUM_CPUS][GPT_SIZE]; //Global Predictor Table
@@ -37,5 +37,5 @@ void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken)
     else if ((taken == 0) && (GPT[cpu][gpt_index] > 0))
         GPT[cpu][gpt_index]--;
 
-    GR = ((GR << 1) | taken) & 0x3FF; //10-bit GR (formed from the 0x3FF masking)
+    GR = ((GR << 1) | taken) & 0xFFFF; //16-bit GR (formed from the 0x3FF masking)
 }

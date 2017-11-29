@@ -1,7 +1,7 @@
 #include "ooo_cpu.h"
 
-#define PBHT_SIZE 128
-#define GPHT_SIZE 256
+#define PBHT_SIZE 1024*2
+#define GPHT_SIZE 16
 #define MAX_COUNTER 3
 
 #include "predictor.h"
@@ -53,7 +53,7 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
     return basepred;
 }
 
-bitset<TS_KEY_SIZE> O3_CPU::ts_idx(UINT32 PC) { // Main Gshare 
+bitset<TS_KEY_SIZE> O3_CPU::ts_idx(uint64_t PC) { // Main Gshare 
     bitset<TS_KEY_SIZE> pc = bitset<TS_KEY_SIZE>(PC);
     return pc | (ts_gh << 32);
 }

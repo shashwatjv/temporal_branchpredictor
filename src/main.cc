@@ -235,6 +235,11 @@ void finish_warmup()
         reset_cache_stats(i, &ooo_cpu[i].L1D);
         reset_cache_stats(i, &ooo_cpu[i].L2C);
         reset_cache_stats(i, &uncore.LLC);
+#ifdef TEMPORAL
+	ooo_cpu[i].max_circbuf = 0;
+	ooo_cpu[i].max_hdtable = 0;
+#endif
+ 
     }
     cout << endl;
 

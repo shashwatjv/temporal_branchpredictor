@@ -25,8 +25,8 @@ using namespace std;
 
 #define STA_SIZE (ROB_SIZE*NUM_INSTR_DESTINATIONS_SPARC)
 
-#define TEMPORAL
-#define UINT32 unsigned int
+//#define TEMPORAL
+
 /////////////////////////////////////////////////////////////
 
 #include <list>
@@ -35,7 +35,7 @@ using namespace std;
 
 #define PHT_SIZE 1024*16
 
-#define TS_KEY_SIZE (140 + 32)
+#define TS_KEY_SIZE (16 + 64)
 
 template<std::size_t N>
 struct bitset_less {
@@ -251,10 +251,10 @@ class O3_CPU {
 
   // Contestants can define their own functions below
  //private:
-  bitset<TS_KEY_SIZE> ts_idx(UINT32 PC);
+  bitset<TS_KEY_SIZE> ts_idx(uint64_t PC);
 
   // stats for temporal storage overhead   
-  UINT32 max_circbuf, max_hdtable;
+  uint64_t max_circbuf, max_hdtable;
   void ts_calc_maxcircbuf();
   void ts_calc_maxhdtable();
 

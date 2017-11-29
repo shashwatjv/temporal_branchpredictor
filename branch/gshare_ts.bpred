@@ -1,6 +1,6 @@
 #include "ooo_cpu.h"
 
-#define GPT_SIZE 1024*16
+#define GPT_SIZE 1024*2
 #define MAX_COUNTER 3
 
 #include "predictor.h"
@@ -45,7 +45,7 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
     return basepred;
 }
 
-bitset<TS_KEY_SIZE> O3_CPU::ts_idx(UINT32 PC) { // Main Gshare 
+bitset<TS_KEY_SIZE> O3_CPU::ts_idx(uint64_t PC) { // Main Gshare 
     bitset<TS_KEY_SIZE> pc = bitset<TS_KEY_SIZE>(PC);
     return pc | (ts_gh << 32);
 }
@@ -62,7 +62,7 @@ int gpt_index = (ip ^ GR) % GPT_SIZE;
     else if ((taken == 0) && (GPT[cpu][gpt_index] > 0))
         GPT[cpu][gpt_index]--;
 
-    GR = ((GR << 1) | taken) & 0x3FF; //10-bit GR (formed from the 0x3FF masking)
+    GR = ((GR << 1) | taken) & 0xFFFF; //10-bit GR (formed from the 0x3FF masking)
 #ifdef TS_ON
   ts_gh <<= 1;
   if(taken == 1){
