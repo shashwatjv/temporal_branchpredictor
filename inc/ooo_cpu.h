@@ -254,7 +254,7 @@ class O3_CPU {
   bitset<TS_KEY_SIZE> ts_idx(UINT32 PC);
 
   // stats for temporal storage overhead   
-  int max_circbuf, max_hdtable;
+  UINT32 max_circbuf, max_hdtable;
   void ts_calc_maxcircbuf();
   void ts_calc_maxhdtable();
 
