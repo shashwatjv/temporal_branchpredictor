@@ -1,0 +1,95 @@
+#include "ooo_cpu.h"
+
+#define GPT_SIZE 1024*16
+#define MAX_COUNTER 3
+
+#include "predictor.h"
+
+int GPT[NUM_CPUS][GPT_SIZE]; //Global Predictor Table
+int GR; //Global History Register
+
+
+void O3_CPU::initialize_branch_predictor()
+{
+
+cout << "CPU" << cpu << "gshare branch predictor" << endl;
+
+	GR = 0; //Initializing Global History Register
+
+	//Initializing Global Predictor Table
+    	for(int i=0; i<GPT_SIZE; i++)
+		GPT[cpu][i] = 0;
+  tshead = ts.end();
+}
+
+uint8_t O3_CPU::predict_branch(uint64_t ip)
+{
+
+//  int prediction = 1;
+
+    int gpt_index = (ip ^ GR) % GPT_SIZE;
+
+    basepred = (GPT[cpu][gpt_index] >= ((MAX_COUNTER + 1)/2)) ? 1 : 0;
+
+    //return prediction;
+
+#ifdef TS_ON
+  if (tshead != ts.end()) {
+    ++tshead;
+    if (!*tshead) {
+      return !basepred;
+    }
+  }
+#endif
+
+    return basepred;
+}
+
+bitset<TS_KEY_SIZE> O3_CPU::ts_idx(UINT32 PC) { // Main Gshare 
+    bitset<TS_KEY_SIZE> pc = bitset<TS_KEY_SIZE>(PC);
+    return pc | (ts_gh << 32);
+}
+
+
+void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken, uint8_t predDir)
+{
+
+
+int gpt_index = (ip ^ GR) % GPT_SIZE;
+
+    if (taken && (GPT[cpu][gpt_index] < MAX_COUNTER))
+        GPT[cpu][gpt_index]++;
+    else if ((taken == 0) && (GPT[cpu][gpt_index] > 0))
+        GPT[cpu][gpt_index]--;
+
+    GR = ((GR << 1) | taken) & 0x3FF; //10-bit GR (formed from the 0x3FF masking)
+#ifdef TS_ON
+  ts_gh <<= 1;
+  if(taken == 1){
+    ts_gh[0] = 1;
+  }
+
+  // update ts
+  ts.push_back(basepred == taken); // checks (Real = or != Base) 
+  
+  if (tshead != ts.end() && taken != predDir) { // replay starts to fail, stop it.[to check whether to come out of predictor or not] [case:1]
+    tshead = ts.end(); // Start all from starting 
+  }
+
+  if (basepred != taken) { // base make a mistake [Case:2] (Case1 is hidden)
+
+    bitset<TS_KEY_SIZE> idx = ts_idx(ip); // generating key for first time
+
+    if (tshead == ts.end()) { // not replaying, try start replay (bringing head and tail together)
+      std::map<bitset<TS_KEY_SIZE>, std::list<char>::iterator, bitset<TS_KEY_SIZE> >::iterator pair = tstable.find(idx); // ( Checking head table for entry) 
+      if (pair != tstable.end()) tshead = pair->second; // (if not in head table then separate out head and tail) 
+    }
+
+    // record location
+    tstable[idx] = ts.end(); // (updating the Head Table)
+    --tstable[idx];
+  }
+
+#endif
+
+}
