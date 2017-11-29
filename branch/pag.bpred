@@ -1,0 +1,48 @@
+#include "ooo_cpu.h"
+
+#define PBHT_SIZE 128
+#define GPHT_SIZE 256
+#define MAX_COUNTER 3
+
+int PBHT[NUM_CPUS][PBHT_SIZE];
+int GPHT[GPHT_SIZE];
+
+void O3_CPU::initialize_branch_predictor()
+{
+    cout << "CPU" << cpu << "PAg branch predictor" << endl;
+	
+	//Initializing Per-address Branch History Table
+    	for(int i=0; i<PBHT_SIZE; i++)
+		PBHT[cpu][i] = 0;
+	
+	//Initializing Global Pattern History Table
+	for(int j=0; j<GPHT_SIZE; j++)
+		GPHT[j] = 0;
+}
+
+uint8_t O3_CPU::predict_branch(uint64_t ip)
+{
+    int prediction = 1;
+
+    int hash = ip % PBHT_SIZE;
+
+    int x = PBHT[cpu][hash]; //history
+
+    prediction = (GPHT[x] >= ((MAX_COUNTER + 1)/2)) ? 1 : 0;
+
+    return prediction;
+}
+
+void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken)
+{
+    int hash = ip % PBHT_SIZE;
+
+    int x = PBHT[cpu][hash]; //old history
+
+    if (taken && (GPHT[x] < MAX_COUNTER))
+        GPHT[x]++;
+    else if ((taken == 0) && (GPHT[x] > 0))
+        GPHT[x]--;
+
+    PBHT[cpu][hash] = ((x << 1) | taken) & 0xFF; //new history 
+}
