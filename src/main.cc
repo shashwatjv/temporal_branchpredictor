@@ -946,6 +946,13 @@ int main(int argc, char** argv)
 #endif
         print_roi_stats(i, &uncore.LLC);
         cout << "Major fault: " << major_fault[i] << " Minor fault: " << minor_fault[i] << endl;
+
+#ifdef TEMPORAL
+	cout << endl << "Temporal Predictor Statistics " << endl << "Max. Circular Buffer Size : " << ooo_cpu[i].max_circbuf;
+	cout << endl << "Max. Head Table Size : " << ooo_cpu[i].max_hdtable;
+	cout << endl << "Temporal Predictor Statistics Ends" << endl;
+#endif
+ 
     }
 
 #ifndef CRC2_COMPILE
@@ -958,5 +965,5 @@ int main(int argc, char** argv)
 
 #endif
 
-    return 0;
+   return 0;
 }

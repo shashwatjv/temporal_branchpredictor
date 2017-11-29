@@ -25,8 +25,8 @@ using namespace std;
 
 #define STA_SIZE (ROB_SIZE*NUM_INSTR_DESTINATIONS_SPARC)
 
-//#define TEMPORAL
-
+#define TEMPORAL
+#define UINT32 unsigned int
 /////////////////////////////////////////////////////////////
 
 #include <list>
@@ -251,9 +251,13 @@ class O3_CPU {
 
   // Contestants can define their own functions below
  //private:
-  bitset<TS_KEY_SIZE> ts_idx(int PC);
+  bitset<TS_KEY_SIZE> ts_idx(UINT32 PC);
 
-  uint32_t cnt_tk, cnt_ntk, cnt_grup;
+  // stats for temporal storage overhead   
+  int max_circbuf, max_hdtable;
+  void ts_calc_maxcircbuf();
+  void ts_calc_maxhdtable();
+
 };
 
 extern O3_CPU ooo_cpu[NUM_CPUS];

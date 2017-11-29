@@ -10,7 +10,7 @@
 
 #define TS_KEY_SIZE (140 + 32)
 
-//#define TS_ON
+#define TS_ON
 
 #endif
 
