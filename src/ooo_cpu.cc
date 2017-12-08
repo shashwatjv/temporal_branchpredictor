@@ -7,10 +7,6 @@ uint32_t SCHEDULING_LATENCY = 0, EXEC_LATENCY = 0;
 
 void O3_CPU::initialize_core()
 {
-#ifdef TEMPORAL
-	max_circbuf = 0;
-        max_hdtable = 0;
-#endif
 }
 
 void O3_CPU::handle_branch()
@@ -150,8 +146,6 @@ void O3_CPU::handle_branch()
 
     #ifdef TEMPORAL
                         last_branch_result(arch_instr.ip, arch_instr.branch_taken, branch_prediction);
-                        ts_calc_maxcircbuf();
-                        ts_calc_maxhdtable();
     #else
                         last_branch_result(arch_instr.ip, arch_instr.branch_taken);
     #endif
@@ -284,8 +278,6 @@ void O3_CPU::handle_branch()
                         }
     #ifdef TEMPORAL
                         last_branch_result(arch_instr.ip, arch_instr.branch_taken, branch_prediction);
-                        ts_calc_maxcircbuf();
-                        ts_calc_maxhdtable();
     #else
                         last_branch_result(arch_instr.ip, arch_instr.branch_taken);
     #endif
@@ -1940,15 +1932,3 @@ void O3_CPU::retire_rob()
     }
 }
 
-#ifdef TEMPORAL
-void O3_CPU::ts_calc_maxcircbuf()
-{
-        if(max_circbuf < ts.size()) max_circbuf = ts.size();
-}
-
-void O3_CPU::ts_calc_maxhdtable()
-{
-        if(max_hdtable < tstable.size()) max_hdtable= tstable.size();
-}
-
-#endif

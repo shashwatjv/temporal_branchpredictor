@@ -25,7 +25,12 @@ using namespace std;
 
 #define STA_SIZE (ROB_SIZE*NUM_INSTR_DESTINATIONS_SPARC)
 
-#define TEMPORAL
+#define TS_KEY_SIZE (16 + 64)
+
+/////////////////////////////////////////////////////////////
+
+//#define TEMPORAL
+//#define BPRED_DBG_ON
 
 /////////////////////////////////////////////////////////////
 
@@ -33,9 +38,6 @@ using namespace std;
 #include <map>
 #include <bitset>
 
-#define PHT_SIZE 1024*16
-
-#define TS_KEY_SIZE (16 + 64)
 
 template<std::size_t N>
 struct bitset_less {
@@ -148,6 +150,7 @@ class O3_CPU {
         branch_mispredictions = 0;
 
 	replay = 0;
+	basepred = 0;
 
         for (uint32_t i=0; i<STA_SIZE; i++)
             STA[i] = UINT64_MAX;
@@ -232,33 +235,15 @@ class O3_CPU {
 
   // The state is defined for Gshare, change for your dcesign
 	
-// private:
-  int  ghr;           // global history register
-  int  pht[NUM_CPUS][PHT_SIZE]; // pattern history table
-
   uint8_t basepred,replay;
-  std::list<char> ts;
-  std::list<char>::iterator tshead;
-  std::map<bitset<TS_KEY_SIZE>, std::list<char>::iterator, bitset_less<TS_KEY_SIZE> > tstable;
-  std::bitset<TS_KEY_SIZE> ts_gh;
 
- //public:
+  // standard lists to implement the temporal stream predictor structures
+  std::list<char> cbuf; // circular buffer
+  std::list<char>::iterator head; // head pointer to circular buffer
+  std::map<bitset<TS_KEY_SIZE>, std::list<char>::iterator, bitset_less<TS_KEY_SIZE> > table; // head table for key hashing
+  std::bitset<TS_KEY_SIZE> hist; // branch history register
 
-  // The interface to the four functions below CAN NOT be changed
-
-  //PREDICTOR(void);
-  //bool    GetPrediction(int PC);  
-  //void    UpdatePredictor(int PC, bool resolveDir, bool predDir, int branchTarget);
-  //void    TrackOtherInst(int PC, OpType opType, int branchTarget);
-
-  // Contestants can define their own functions below
- //private:
-  bitset<TS_KEY_SIZE> ts_idx(uint64_t PC);
-
-  // stats for temporal storage overhead   
-  uint64_t max_circbuf, max_hdtable;
-  void ts_calc_maxcircbuf();
-  void ts_calc_maxhdtable();
+  bitset<TS_KEY_SIZE> key_gen(uint64_t PC); // local function to create key using current PC and branch history register
 
 };
 
