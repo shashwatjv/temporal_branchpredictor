@@ -25,7 +25,7 @@ using namespace std;
 
 #define STA_SIZE (ROB_SIZE*NUM_INSTR_DESTINATIONS_SPARC)
 
-//#define TEMPORAL
+#define TEMPORAL
 
 /////////////////////////////////////////////////////////////
 
@@ -147,6 +147,8 @@ class O3_CPU {
         num_branch = 0;
         branch_mispredictions = 0;
 
+	replay = 0;
+
         for (uint32_t i=0; i<STA_SIZE; i++)
             STA[i] = UINT64_MAX;
         STA_head = 0;
@@ -234,7 +236,7 @@ class O3_CPU {
   int  ghr;           // global history register
   int  pht[NUM_CPUS][PHT_SIZE]; // pattern history table
 
-  uint8_t basepred;
+  uint8_t basepred,replay;
   std::list<char> ts;
   std::list<char>::iterator tshead;
   std::map<bitset<TS_KEY_SIZE>, std::list<char>::iterator, bitset_less<TS_KEY_SIZE> > tstable;
