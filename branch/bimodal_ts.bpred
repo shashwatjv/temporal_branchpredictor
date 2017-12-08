@@ -3,7 +3,6 @@
 #define BIMODAL_TABLE_SIZE 1024*2
 #define BIMODAL_PRIME 1024*2
 #define MAX_COUNTER 3
-#include "predictor.h"
 
 int bimodal_table[NUM_CPUS][BIMODAL_TABLE_SIZE];
 
@@ -13,30 +12,28 @@ void O3_CPU::initialize_branch_predictor()
 
     for(int i=0; i<BIMODAL_TABLE_SIZE; i++)
         bimodal_table[cpu][i] = 0;
- tshead = ts.end();
+
+    head = cbuf.end();
 }
 
 
 uint8_t O3_CPU::predict_branch(uint64_t ip)
 {
-  //  int prediction = 1;
 
     int hash = ip % BIMODAL_PRIME;
     basepred = (bimodal_table[cpu][hash] >= ((MAX_COUNTER + 1)/2)) ? 1 : 0;
 
-   // return prediction;
-#ifdef TS_ON
-  if (tshead != ts.end()) {
-    ++tshead;
-    if (!*tshead) {
-      return !basepred;
+    if (head != cbuf.end()) {
+       ++head;
+       if (!*head) {
+         return !basepred;
+       }
     }
-  }
-#endif
 
     return basepred;
 }
-bitset<TS_KEY_SIZE> O3_CPU::ts_idx(uint64_t PC) { // Main Gshare 
+
+bitset<TS_KEY_SIZE> O3_CPU::key_gen(uint64_t PC) { 
     bitset<TS_KEY_SIZE> pc = bitset<TS_KEY_SIZE>(PC);
     return pc;
 
@@ -51,28 +48,34 @@ void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken, uint8_t predDir)
     else if ((taken == 0) && (bimodal_table[cpu][hash] > 0))
         bimodal_table[cpu][hash]--;
 
-#ifdef TS_ON
+#ifdef BPRED_DBG_ON
+cout << "DBG-BRANCH: | ID: " << instr_unique_id << std::hex << "|PC: " << ip << std::dec << "|BASE: " << (uint32_t) (basepred) << "|TS: " << (uint32_t) (predDir) << "|ACT: " << (uint32_t)(taken) << "|REPLAY: " << (uint32_t)(replay) << " |" << endl;
+#endif
 
-  // update ts
-  ts.push_back(basepred == taken); // checks (Real = or != Base) 
+  // update the circular buffer entry
+  cbuf.push_back(basepred == taken); // checks (ActualPrediction = or != BasePrediction) 
   
-  if (tshead != ts.end() && taken != predDir) { // replay starts to fail, stop it.[to check whether to come out of predictor or not] [case:1]
-    tshead = ts.end(); // Start all from starting 
+  if (head != cbuf.end() && taken != predDir) { // replay fails
+    head = cbuf.end(); // Start all from beginning
+    replay = 0;
   }
 
-  if (basepred != taken) { // base make a mistake [Case:2] (Case1 is hidden)
+  if (basepred != taken) { // base makes a misprediction
 
-    bitset<TS_KEY_SIZE> idx = ts_idx(ip); // generating key for first time
+    bitset<TS_KEY_SIZE> idx = key_gen(ip); // generating key for first time
 
-    if (tshead == ts.end()) { // not replaying, try start replay (bringing head and tail together)
-      std::map<bitset<TS_KEY_SIZE>, std::list<char>::iterator, bitset<TS_KEY_SIZE> >::iterator pair = tstable.find(idx); // ( Checking head table for entry) 
-      if (pair != tstable.end()) tshead = pair->second; // (if not in head table then separate out head and tail) 
+    if (head == cbuf.end()) { // not replaying, try start replay 
+      std::map<bitset<TS_KEY_SIZE>, std::list<char>::iterator, bitset<TS_KEY_SIZE> >::iterator pair = table.find(idx); 
+      // ( Checking head table for entry)
+      if (pair != table.end()) {
+	head = pair->second; // (if in head table then separate out head and tail) 
+	replay = 1;
+      }
     }
 
     // record location
-    tstable[idx] = ts.end(); // (updating the Head Table)
-    --tstable[idx];
+    table[idx] = cbuf.end(); // (updating the Head Table)
+    --table[idx];
  
-}
-#endif
+  }
 }

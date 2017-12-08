@@ -22,15 +22,14 @@ void O3_CPU::initialize_branch_predictor()
 
 uint8_t O3_CPU::predict_branch(uint64_t ip)
 {
-    int prediction = 1;
 
     int hash = ip % PBHT_SIZE;
 
     int x = PBHT[cpu][hash]; //history
 
-    prediction = (GPHT[x] >= ((MAX_COUNTER + 1)/2)) ? 1 : 0;
+    basepred = (GPHT[x] >= ((MAX_COUNTER + 1)/2)) ? 1 : 0;
 
-    return prediction;
+    return basepred;
 }
 
 void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken)

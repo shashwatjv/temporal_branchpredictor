@@ -19,23 +19,28 @@ void O3_CPU::initialize_branch_predictor()
 
 uint8_t O3_CPU::predict_branch(uint64_t ip)
 {
-    int prediction = 1;
 
     int gpt_index = (ip ^ GR) % GPT_SIZE;
 
-    prediction = (GPT[cpu][gpt_index] >= ((MAX_COUNTER + 1)/2)) ? 1 : 0;
+    basepred = (GPT[cpu][gpt_index] >= ((MAX_COUNTER + 1)/2)) ? 1 : 0;
 
-    return prediction;
+    return basepred;
 }
 
 void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken)
 {
     int gpt_index = (ip ^ GR) % GPT_SIZE;
 
+#ifdef BPRED_DBG_ON
+cout << "DBG-BRANCH| ID: " << instr_unique_id << " |PC: " << std::hex << ip << " |GR: " << GR << " |HASH: " << gpt_index << " |BASE: " << std::dec << (uint32_t) (basepred) << " |ACT: " << (uint32_t) (taken) << " |" << endl;
+#endif
+
     if (taken && (GPT[cpu][gpt_index] < MAX_COUNTER))
         GPT[cpu][gpt_index]++;
     else if ((taken == 0) && (GPT[cpu][gpt_index] > 0))
         GPT[cpu][gpt_index]--;
 
-    GR = ((GR << 1) | taken) & 0xFFFF; //16-bit GR (formed from the 0x3FF masking)
+    GR = ((GR << 1) | taken) & 0xFFFF; //16-bit GR 
+
+
 }
