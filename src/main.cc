@@ -960,5 +960,7 @@ int main(int argc, char** argv)
 
 #endif
 
+   cout << endl << "CHAMPSIM : SIMULATION DONE" << endl;
+
    return 0;
 }
