@@ -15,12 +15,12 @@ void O3_CPU::initialize_branch_predictor()
 
 uint8_t O3_CPU::predict_branch(uint64_t ip)
 {
-    int prediction = 1;
+    basepred = 1;
 
     int hash = ip % BIMODAL_PRIME;
-    prediction = (bimodal_table[cpu][hash] >= ((MAX_COUNTER + 1)/2)) ? 1 : 0;
+    basepred = (bimodal_table[cpu][hash] >= ((MAX_COUNTER + 1)/2)) ? 1 : 0;
 
-    return prediction;
+    return basepred;
 }
 
 void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken)
@@ -31,4 +31,9 @@ void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken)
         bimodal_table[cpu][hash]++;
     else if ((taken == 0) && (bimodal_table[cpu][hash] > 0))
         bimodal_table[cpu][hash]--;
+
+#ifdef BPRED_DBG_ON
+cout << "DBG-BRANCH: | ID: " << instr_unique_id << std::hex << "|PC: " << ip << std::dec << "|BASE: " << (int)(basepred) << "|ACT: " << (int)(taken) << " |" << endl;
+#endif
+
 }
